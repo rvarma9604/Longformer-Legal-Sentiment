@@ -10,10 +10,10 @@ from transformers import get_linear_schedule_with_warmup
 
 
 def load_file_names(files):
-    with open(train_file, 'rb') as f:
-        files = pickle.load(f)
+    with open(files, 'rb') as f:
+        file_list = pickle.load(f)
 
-    return files
+    return file_list
 
 def save_snapshot(epoch, model, optimizer, scheduler, train_acc, train_loss, test_acc, test_loss, out_dir):
     torch.save({'epoch': epoch+1, 'model_state_dict': model.state_dict(),
@@ -47,11 +47,11 @@ def train_model(model, train_loader, test_loader, optimizer, device, start_epoch
 def start_train(args):
     '''data loaders'''
     train_files = load_file_names(args.train_files)
-    train_dataset = Data(train_files)
+    train_dataset = Data(train_files, max_len=args.max_len)
     train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=4)
 
     test_files = load_file_names(args.test_files)
-    test_dataset = Data(test_files)
+    test_dataset = Data(test_files, max_len=args.max_len)
     test_loader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False, num_workers=4)
     
     '''model setup'''
@@ -100,6 +100,7 @@ def main():
     parser.add_argument('--epochs', default=100, type=int, help='maximum epochs to be performed')
     parser.add_argument('--batch_size', default=32, type=int, help='batch size')
     parser.add_argument('--lr', default=1e-4, type=float, help='learning rate')
+    parser.add_argument('--max_len', default=4096, type=int, help='maximum sequence length to be fed')
     parser.add_argument('--resume', default=None, help='snapshot file')
     args = parser.parse_args()
     print(args)
