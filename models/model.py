@@ -75,3 +75,23 @@ class LongDocClassifier(nn.Module):
         test_loss = total_loss / len(test_loader.dataset)
 
         return test_acc, test_loss
+
+    def predict(test_loader, device):
+        self.model.eval()
+
+        preds = None
+        for batch_id, (input_ids, att_masks, global_mask) in enumerate(test_loader):
+            with torch.no_grad():
+            input_ids, att_masks, global_masks = input_ids.to(device), att_masks.to(device), global_masks.to(device)
+
+            yhat = self.model(input_ids, att_masks, global_masks)
+            yhat = torch.argmax(yhat, axis=1)
+
+            torch.cuda.empty_cache()
+
+            if (batch_id % 500 == 0) or (batch_id == len(test_loader) - 1):
+                print(f'\t\tEval iter {batch_id + 1}/{len(test_loader)}')
+
+            preds = torch.cat((preds, yhat), 0) if preds is not None else yhat
+
+        return preds
