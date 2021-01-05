@@ -1,0 +1,5 @@
+*.work/
+egs/log.*
+egs/exp/
+__pycache__
+data/train
